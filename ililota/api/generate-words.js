@@ -1,0 +1,117 @@
+// Vercel Serverless Function
+// PRD 6. AI 동작 정의 - Gemini API를 호출해 카테고리별 용어 5개를 실시간 생성합니다.
+// GEMINI_API_KEY는 Vercel 프로젝트 환경변수로만 보관되어 클라이언트에 노출되지 않습니다.
+
+const CATEGORY_LABELS = {
+  stock: '주식·펀드 첫걸음 (재테크 기초)',
+  realestate: '내 집 마련의 모든 것 (부동산·청약)',
+  saving: '월급쟁이 돈 아끼기 (소비·절세)',
+  news: '경제 기사 치트키 (시사·뉴스)',
+  trend: '코인·NFT·조각투자 (트렌드 금융)',
+}
+
+const RESPONSE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    words: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          word: { type: 'STRING' },
+          summary_analogy: { type: 'STRING' },
+          full_definition: { type: 'STRING' },
+        },
+        required: ['word', 'summary_analogy', 'full_definition'],
+      },
+    },
+  },
+  required: ['words'],
+}
+
+function buildPrompt(categoryLabels, seenWords) {
+  const excludeList = seenWords.length > 0 ? seenWords.join(', ') : '(없음)'
+
+  return `너는 경제·시사 극초보자를 위한 용어 해설가야.
+아래 카테고리에서 오늘 배울 핵심 경제/시사 용어 5개를 뽑아줘.
+
+카테고리: ${categoryLabels}
+
+규칙:
+- 반드시 다음 목록에 있는 단어는 절대 포함하지 마 (이미 학습함): ${excludeList}
+- 어렵고 딱딱한 한자어·학술적 정의를 절대 쓰지 말고, 일상적인 비유로 풀어서 설명할 것
+- summary_analogy: 초등학생도 이해할 수 있는 1문장짜리 직관적인 일상 비유 (핵심 비유는 반드시 여기에만)
+- full_definition: 비유를 뒷받침하는 2문장 이내의 구어체 개념 해설 (summary_analogy와 내용이 겹치지 않게, 상세 설명은 반드시 여기에만)
+- 정확히 5개의 서로 다른 용어를 생성할 것`
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  const { categories, seenWords } = req.body ?? {}
+
+  if (!Array.isArray(categories) || categories.length === 0) {
+    res.status(400).json({ error: 'categories(배열)가 필요합니다.' })
+    return
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    res.status(500).json({ error: '서버에 GEMINI_API_KEY가 설정되어 있지 않습니다.' })
+    return
+  }
+
+  const categoryLabels = categories.map((id) => CATEGORY_LABELS[id] ?? id).join(', ')
+  const excludeWords = Array.isArray(seenWords) ? seenWords : []
+  const prompt = buildPrompt(categoryLabels, excludeWords)
+
+  try {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 1,
+            responseMimeType: 'application/json',
+            responseSchema: RESPONSE_SCHEMA,
+            // gemini-2.5-flash는 기본적으로 "생각하기"에 토큰을 써서 본문이 비거나
+            // maxOutputTokens을 넘기기 쉬우므로 즉답 모드로 끕니다.
+            thinkingConfig: { thinkingBudget: 0 },
+            maxOutputTokens: 2048,
+          },
+        }),
+      }
+    )
+
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text()
+      res.status(502).json({ error: `Gemini API 오류: ${errText}` })
+      return
+    }
+
+    const data = await geminiRes.json()
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+
+    if (!text) {
+      res.status(502).json({ error: 'Gemini API가 빈 응답을 반환했습니다.' })
+      return
+    }
+
+    const parsed = JSON.parse(text)
+
+    if (!Array.isArray(parsed.words) || parsed.words.length === 0) {
+      res.status(502).json({ error: 'Gemini API 응답 형식이 올바르지 않습니다.' })
+      return
+    }
+
+    res.status(200).json(parsed)
+  } catch (err) {
+    res.status(500).json({ error: err instanceof Error ? err.message : '알 수 없는 오류' })
+  }
+}
