@@ -11,7 +11,12 @@ export async function fetchWords(selectedCategories, seenWords) {
     body: JSON.stringify({ categories: selectedCategories, seenWords }),
   })
 
-  const data = await res.json()
+  let data
+  try {
+    data = await res.json()
+  } catch {
+    throw new Error('단어를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')
+  }
 
   if (!res.ok) {
     throw new Error(data?.error ?? '단어를 불러오지 못했습니다.')
