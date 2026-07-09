@@ -21,8 +21,9 @@ const RESPONSE_SCHEMA = {
           word: { type: 'STRING' },
           summary_analogy: { type: 'STRING' },
           full_definition: { type: 'STRING' },
+          review_detail: { type: 'STRING' },
         },
-        required: ['word', 'summary_analogy', 'full_definition'],
+        required: ['word', 'summary_analogy', 'full_definition', 'review_detail'],
       },
     },
   },
@@ -45,6 +46,7 @@ function buildPrompt(categoryLabels, seenWords) {
 - 단어 자체는 어려워도 되지만, 설명은 정반대로 쉬워야 해: 어렵고 딱딱한 한자어·학술적 정의를 절대 쓰지 말고, 일상적인 비유로 풀어서 설명할 것
 - summary_analogy: 초등학생도 이해할 수 있는 1문장짜리 직관적인 일상 비유 (핵심 비유는 반드시 여기에만)
 - full_definition: 비유를 뒷받침하는 2문장 이내의 구어체 개념 해설 (summary_analogy와 내용이 겹치지 않게, 상세 설명은 반드시 여기에만)
+- review_detail: 사용자가 '모르겠어요'를 눌러 오답노트에 저장했을 때 나중에 복습용으로 보여줄 심화 설명. full_definition보다 길고 구체적으로, 실제 숫자나 구체적인 상황을 든 예시를 최소 1개 포함해서 4~6문장으로 풀어서 설명할 것. 여전히 어려운 한자어나 딱딱한 학술적 정의는 쓰지 말고 쉬운 말로 풀어 쓸 것
 - 정확히 5개의 서로 다른 용어를 생성할 것`
 }
 
@@ -86,7 +88,7 @@ export default async function handler(req, res) {
             // gemini-2.5-flash는 기본적으로 "생각하기"에 토큰을 써서 본문이 비거나
             // maxOutputTokens을 넘기기 쉬우므로 즉답 모드로 끕니다.
             thinkingConfig: { thinkingBudget: 0 },
-            maxOutputTokens: 2048,
+            maxOutputTokens: 3072,
           },
         }),
       }

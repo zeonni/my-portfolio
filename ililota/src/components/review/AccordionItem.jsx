@@ -41,7 +41,9 @@ export default function AccordionItem({ word, onMaster }) {
               <p className="rounded-lg bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-800">
                 {word.summary_analogy}
               </p>
-              <p className="text-sm leading-relaxed text-ink-dark">{word.full_definition}</p>
+              <p className="text-sm leading-relaxed text-ink-dark">
+                {word.review_detail ?? word.full_definition}
+              </p>
             </div>
           </motion.div>
         )}
