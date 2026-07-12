@@ -8,6 +8,11 @@ export const STAGE = {
   COMPLETE: 'complete',
 }
 
+// 로컬 타임존 기준 'YYYY-MM-DD' 키 (연속 학습일 계산용)
+function dateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
 export const useAppStore = create(
   persist(
     (set, get) => ({
@@ -24,6 +29,12 @@ export const useAppStore = create(
       selectedCategories: [],
       seenWords: [], // string[] - 중복 방지용 전체 이력
       incorrectWords: [], // { word, summary_analogy, full_definition }[] - 오답노트
+      streak: 0, // 연속 학습일
+      lastCompletedDate: null, // 'YYYY-MM-DD' - 마지막으로 5장을 완료한 날
+      moreStudyClickCount: 0, // 완료 화면 '더 공부하고 싶어요' 클릭 수 - 추가 학습 의지 측정용
+
+      // ---- 완료 축하 화면 트리거 (비영속) ----
+      sessionJustCompleted: false,
 
       // ---- actions ----
       setSelectedCategories: (categories) => set({ selectedCategories: categories }),
@@ -38,6 +49,7 @@ export const useAppStore = create(
           currentIndex: 0,
           stage: STAGE.LEARNING,
           isLoading: false,
+          sessionJustCompleted: false,
         }),
 
       // '이해했어요' -> seenWords에만 추가 후 다음 카드
@@ -63,13 +75,39 @@ export const useAppStore = create(
       _advance: (nextSeen, nextIncorrect) =>
         set((state) => {
           const isLast = state.currentIndex + 1 >= state.currentWords.length
+          if (!isLast) {
+            return {
+              seenWords: nextSeen,
+              incorrectWords: nextIncorrect ?? state.incorrectWords,
+              currentIndex: state.currentIndex + 1,
+            }
+          }
+
+          const now = new Date()
+          const today = dateKey(now)
+          const yesterday = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
+          let nextStreak
+          if (state.lastCompletedDate === today) {
+            nextStreak = state.streak
+          } else if (state.lastCompletedDate === yesterday) {
+            nextStreak = state.streak + 1
+          } else {
+            nextStreak = 1
+          }
+
           return {
             seenWords: nextSeen,
             incorrectWords: nextIncorrect ?? state.incorrectWords,
-            currentIndex: isLast ? state.currentIndex : state.currentIndex + 1,
-            stage: isLast ? STAGE.COMPLETE : state.stage,
+            stage: STAGE.COMPLETE,
+            streak: nextStreak,
+            lastCompletedDate: today,
+            sessionJustCompleted: true,
           }
         }),
+
+      // 완료 화면의 '더 공부하고 싶어요' 클릭 수 집계 (추가 학습 의지 측정용, 클릭해도 화면 전환 없음)
+      incrementMoreStudyClicks: () =>
+        set((state) => ({ moreStudyClickCount: state.moreStudyClickCount + 1 })),
 
       // 오답노트에서 '마스터 완료' 클릭 시 개별 삭제
       removeIncorrectWord: (word) =>
@@ -92,6 +130,7 @@ export const useAppStore = create(
           selectedCategories: [],
           currentWords: [],
           currentIndex: 0,
+          sessionJustCompleted: false,
         }),
 
       // '오답노트 닫기' -> 카드 화면으로 복귀 (진행 상태 유지)
@@ -102,11 +141,14 @@ export const useAppStore = create(
     }),
     {
       name: 'ililota-storage', // LocalStorage key
-      // 화면 전이/로딩 등 휘발성 상태는 저장하지 않고, PRD 7의 3개 필드만 영속화
+      // 화면 전이/로딩 등 휘발성 상태는 저장하지 않고, PRD 7의 필드만 영속화
       partialize: (state) => ({
         selectedCategories: state.selectedCategories,
         seenWords: state.seenWords,
         incorrectWords: state.incorrectWords,
+        streak: state.streak,
+        lastCompletedDate: state.lastCompletedDate,
+        moreStudyClickCount: state.moreStudyClickCount,
       }),
     }
   )

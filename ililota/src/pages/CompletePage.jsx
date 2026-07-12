@@ -2,15 +2,19 @@ import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import ReviewListItem from '../components/review/ReviewListItem'
 import ReviewModal from '../components/review/ReviewModal'
+import CelebrationScreen from '../components/celebration/CelebrationScreen'
 import { simplifyReview } from '../api/simplifyReview'
 
-// 화면 3 · 완료 및 오답노트 화면
+// 화면 3 · 완료 축하 및 오답노트 화면
 export default function CompletePage() {
   const incorrectWords = useAppStore((s) => s.incorrectWords)
   const removeIncorrectWord = useAppStore((s) => s.removeIncorrectWord)
   const updateIncorrectWordExplanation = useAppStore((s) => s.updateIncorrectWordExplanation)
   const closeReview = useAppStore((s) => s.closeReview)
   const resetToOnboarding = useAppStore((s) => s.resetToOnboarding)
+  const streak = useAppStore((s) => s.streak)
+  const sessionJustCompleted = useAppStore((s) => s.sessionJustCompleted)
+  const incrementMoreStudyClicks = useAppStore((s) => s.incrementMoreStudyClicks)
 
   // 오답노트 복습 세션 상태
   const [reviewQueue, setReviewQueue] = useState([])
@@ -63,6 +67,12 @@ export default function CompletePage() {
   const handleGoHome = () => {
     setPhase(null)
     resetToOnboarding()
+  }
+
+  // 카드 5장을 막 끝낸 경우, 오답노트로 넘어가지 않고 완료 화면을 계속 보여줌.
+  // (오답노트 아이콘으로 중간에 들어온 경우는 sessionJustCompleted가 false라 바로 아래 오답노트 화면으로 진입)
+  if (sessionJustCompleted) {
+    return <CelebrationScreen streak={streak} onMoreStudy={incrementMoreStudyClicks} />
   }
 
   return (
