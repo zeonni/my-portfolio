@@ -10,40 +10,46 @@ const CATEGORY_LABELS = {
   trend: '코인·NFT·조각투자 (트렌드 금융)',
 }
 
-const RESPONSE_SCHEMA = {
-  type: 'OBJECT',
-  properties: {
-    words: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          word: { type: 'STRING' },
-          summary_analogy: { type: 'STRING' },
-          full_definition: { type: 'STRING' },
-          review_detail: { type: 'STRING' },
+function buildResponseSchema(categoryIds) {
+  return {
+    type: 'OBJECT',
+    properties: {
+      words: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            word: { type: 'STRING' },
+            category: { type: 'STRING', enum: categoryIds },
+            summary_analogy: { type: 'STRING' },
+            full_definition: { type: 'STRING' },
+            review_detail: { type: 'STRING' },
+          },
+          required: ['word', 'category', 'summary_analogy', 'full_definition', 'review_detail'],
         },
-        required: ['word', 'summary_analogy', 'full_definition', 'review_detail'],
       },
     },
-  },
-  required: ['words'],
+    required: ['words'],
+  }
 }
 
-function buildPrompt(categoryLabels, seenWords) {
+function buildPrompt(categoryEntries, seenWords) {
   const excludeList = seenWords.length > 0 ? seenWords.join(', ') : '(없음)'
+  const categoryList = categoryEntries.map(([id, label]) => `${id}: ${label}`).join('\n')
 
   return `너는 20~30대 사회초년생을 위한 경제·시사 용어 해설가야.
 타깃은 경제 뉴스를 챙겨보고 싶지만 어려운 용어 앞에서 막히는 사람들이야. '주식', '부동산', '적금', '대출', '이자', '청약'처럼 이미 다 아는 왕초보 단어는 시시하게 느껴지니 절대 뽑지 마.
 아래 카테고리에서, 실제 경제 뉴스나 재테크 콘텐츠에는 자주 나오지만 초심자는 낯설어하는 한 단계 더 심화된 실전 용어 5개를 뽑아줘.
 (참고 난이도 예시: LTV, DSR, 기저효과, 스태그플레이션, PER, 배당수익률, 리밸런싱, 예대마진, 서브프라임 모기지 — 이 정도의 낯섦과 구체성을 목표로 할 것)
 
-카테고리: ${categoryLabels}
+카테고리 (id: 설명):
+${categoryList}
 
 규칙:
 - 반드시 다음 목록에 있는 단어는 절대 포함하지 마 (이미 학습함): ${excludeList}
 - 카테고리명 자체나 그 카테고리의 가장 기초적인 입문 단어는 금지. 그 카테고리 안에서 한 단계 더 들어간 구체적인 실전 용어를 뽑을 것
 - 단어 자체는 어려워도 되지만, 설명은 정반대로 쉬워야 해: 어렵고 딱딱한 한자어·학술적 정의를 절대 쓰지 말고, 일상적인 비유로 풀어서 설명할 것
+- category: 그 단어가 위 카테고리 목록 중 어디에 가장 잘 맞는지 id 값 그대로 적을 것 (설명 문구가 아닌 id)
 - summary_analogy: 초등학생도 이해할 수 있는 1문장짜리 직관적인 일상 비유 (핵심 비유는 반드시 여기에만)
 - full_definition: 비유를 뒷받침하는 2문장 이내의 구어체 개념 해설 (summary_analogy와 내용이 겹치지 않게, 상세 설명은 반드시 여기에만)
 - review_detail: 사용자가 '모르겠어요'를 눌러 오답노트에 저장했을 때 나중에 복습용으로 보여줄 심화 설명. 초등학생이 혼자 읽어도 완벽하게 이해되는 쉬운 말로만 쓸 것. full_definition보다 길고 구체적인 예시(숫자나 상황 최소 1개)를 4~6문장으로 풀어 쓰되, 지금 설명하는 단어 하나를 빼고는 '증권사', '수수료', '계좌', '매수/매도', '차익', '이자율' 같은 다른 경제 용어를 절대 쓰지 말 것. 그런 개념이 필요하면 '주식을 사고파는 회사', '빌려 쓴 대가로 주는 돈'처럼 매번 풀어서 설명할 것. 문장도 짧고 쉬운 단어 위주로, 학교 다니는 어린이에게 설명해주듯 친근한 말투로 쓸 것
@@ -69,9 +75,9 @@ export default async function handler(req, res) {
     return
   }
 
-  const categoryLabels = categories.map((id) => CATEGORY_LABELS[id] ?? id).join(', ')
+  const categoryEntries = categories.map((id) => [id, CATEGORY_LABELS[id] ?? id])
   const excludeWords = Array.isArray(seenWords) ? seenWords : []
-  const prompt = buildPrompt(categoryLabels, excludeWords)
+  const prompt = buildPrompt(categoryEntries, excludeWords)
 
   try {
     const geminiRes = await fetch(
@@ -84,7 +90,7 @@ export default async function handler(req, res) {
           generationConfig: {
             temperature: 1,
             responseMimeType: 'application/json',
-            responseSchema: RESPONSE_SCHEMA,
+            responseSchema: buildResponseSchema(categories),
             // gemini-2.5-flash는 기본적으로 "생각하기"에 토큰을 써서 본문이 비거나
             // maxOutputTokens을 넘기기 쉬우므로 즉답 모드로 끕니다.
             thinkingConfig: { thinkingBudget: 0 },

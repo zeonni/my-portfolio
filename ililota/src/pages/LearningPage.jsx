@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookMarked } from 'lucide-react'
+import { BookX, RefreshCw } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { CATEGORIES } from '../constants/categories'
 import ProgressBar from '../components/cards/ProgressBar'
@@ -14,6 +14,7 @@ export default function LearningPage() {
   const markUnderstood = useAppStore((s) => s.markUnderstood)
   const markUnknown = useAppStore((s) => s.markUnknown)
   const resetToOnboarding = useAppStore((s) => s.resetToOnboarding)
+  const openReview = useAppStore((s) => s.openReview)
 
   // 방금 넘긴 카드의 스냅샷. 값이 있는 동안 오버레이로 날아가는 모션을 보여줍니다.
   const [flyingCard, setFlyingCard] = useState(null) // { word, type: 'understood' | 'unknown' } | null
@@ -21,10 +22,8 @@ export default function LearningPage() {
   const total = currentWords.length
   const word = currentWords[currentIndex]
 
-  const categoryLabel = selectedCategories
-    .map((id) => CATEGORIES.find((c) => c.id === id)?.label)
-    .filter(Boolean)
-    .join(' · ')
+  const firstCategory = CATEGORIES.find((c) => c.id === selectedCategories[0])
+  const extraCategoryCount = selectedCategories.length - 1
 
   const handleUnderstood = () => {
     setFlyingCard({ word, type: 'understood' })
@@ -40,24 +39,34 @@ export default function LearningPage() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-sm font-medium text-primary">{categoryLabel}</span>
+      <div className="mb-4 flex items-center justify-between rounded-lg bg-primary-50 py-1.5 pl-3 pr-1.5">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[11px] leading-none text-ink-dark">선택된 카테고리</span>
+          <span className="text-sm font-medium leading-none text-primary">
+            {firstCategory?.sub}
+            {extraCategoryCount > 0 && ` +${extraCategoryCount}`}
+          </span>
+        </div>
         <button
           type="button"
           onClick={resetToOnboarding}
-          className="text-sm text-ink-dark underline decoration-ink-light underline-offset-4 hover:text-primary"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-ink-dark hover:text-primary"
         >
-          카테고리 변경
+          <RefreshCw size={14} />
+          변경
         </button>
       </div>
 
-      <ProgressBar current={currentIndex + 1} total={total} />
-
-      <div className="relative mt-10 flex-1">
-        <div className="pointer-events-none absolute -top-6 right-0 flex items-center gap-1 text-ink">
-          <BookMarked size={18} />
-          <span className="text-xs font-medium">{incorrectWords.length}</span>
-        </div>
+      <div className="relative my-12 flex flex-1 flex-col justify-center">
+        <button
+          type="button"
+          onClick={openReview}
+          disabled={incorrectWords.length === 0}
+          className="absolute -top-6 right-0 flex items-center gap-1.5 py-1.5 pl-2.5 pr-3 text-ink-dark hover:text-primary disabled:pointer-events-none disabled:opacity-50"
+        >
+          <BookX size={16} className="text-red-500" />
+          <span className="text-xs font-semibold">오답노트 {incorrectWords.length}</span>
+        </button>
 
         <WordCard key={currentIndex} word={word} />
 
@@ -72,7 +81,11 @@ export default function LearningPage() {
         )}
       </div>
 
-      <div className="mt-8 flex gap-3">
+      <div className="mt-8">
+        <ProgressBar current={currentIndex + 1} total={total} />
+      </div>
+
+      <div className="mt-6 flex gap-3">
         <button
           type="button"
           onClick={handleUnknown}

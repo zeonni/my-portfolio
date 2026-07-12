@@ -1,21 +1,26 @@
 import { motion } from 'framer-motion'
 
+// 진행률을 숫자(n/total) 대신, 카드 개수만큼의 점으로 표시합니다.
+// 지나온 카드는 채워진 점, 지금 보는 카드는 크고 진한 점, 남은 카드는 빈 점입니다.
 export default function ProgressBar({ current, total }) {
-  const pct = total > 0 ? (current / total) * 100 : 0
-
   return (
-    <div className="flex items-center gap-3">
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-light">
-        <motion.div
-          className="h-full rounded-full bg-primary"
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-        />
-      </div>
-      <span className="whitespace-nowrap text-xs font-medium text-ink">
-        {current}/{total}
-      </span>
+    <div className="flex items-center justify-center gap-2.5">
+      {Array.from({ length: total }, (_, i) => i + 1).map((step) => {
+        const isCurrent = step === current
+        const isDone = step < current
+
+        return (
+          <motion.span
+            key={step}
+            layout
+            className={`rounded-full ${
+              isDone ? 'bg-primary/50' : isCurrent ? 'bg-primary' : 'border-2 border-ink-light bg-transparent'
+            }`}
+            animate={{ width: isCurrent ? 12 : 8, height: isCurrent ? 12 : 8 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          />
+        )
+      })}
     </div>
   )
 }

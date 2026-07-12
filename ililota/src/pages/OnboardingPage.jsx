@@ -25,8 +25,8 @@ export default function OnboardingPage() {
     try {
       const words = await fetchWords(selected, seenWords)
       startLearning(words)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '단어를 불러오지 못했습니다.')
+    } catch {
+      setError('잠시 오류가 발생했어요. 다시 버튼을 눌러 주세요.')
     }
   }
 
@@ -34,7 +34,7 @@ export default function OnboardingPage() {
     <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-10">
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-primary">일일오따</h1>
-        <p className="mt-2 text-sm text-ink-dark">오늘의 관심 카테고리를 골라주세요</p>
+        <p className="mt-2 text-sm text-ink-dark">하루 5단어로 시작하는 경제공부, 카테고리를 골라주세요!</p>
       </header>
 
       <CategoryGrid selected={selected} onToggle={toggle} />

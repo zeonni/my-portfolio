@@ -77,6 +77,14 @@ export const useAppStore = create(
           incorrectWords: state.incorrectWords.filter((w) => w.word !== word),
         })),
 
+      // 오답노트에서 '여전히 어려워요' 클릭 시 더 쉬운 설명으로 교체
+      updateIncorrectWordExplanation: (word, { summary_analogy, review_detail }) =>
+        set((state) => ({
+          incorrectWords: state.incorrectWords.map((w) =>
+            w.word === word ? { ...w, summary_analogy, review_detail } : w
+          ),
+        })),
+
       // '다른 카테고리 공부하기' -> 카테고리 선택 화면으로 리셋 (seen/incorrect는 유지)
       resetToOnboarding: () =>
         set({
@@ -85,6 +93,12 @@ export const useAppStore = create(
           currentWords: [],
           currentIndex: 0,
         }),
+
+      // '오답노트 닫기' -> 카드 화면으로 복귀 (진행 상태 유지)
+      closeReview: () => set({ stage: STAGE.LEARNING }),
+
+      // 학습 화면에서 오답노트 아이콘 클릭 -> 5단어를 다 풀지 않아도 오답노트 화면으로 이동
+      openReview: () => set({ stage: STAGE.COMPLETE }),
     }),
     {
       name: 'ililota-storage', // LocalStorage key
