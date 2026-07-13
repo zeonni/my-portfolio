@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { BookX } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
+import { CATEGORIES } from '../constants/categories'
 import ReviewListItem from '../components/review/ReviewListItem'
 import ReviewModal from '../components/review/ReviewModal'
 import CelebrationScreen from '../components/celebration/CelebrationScreen'
@@ -15,11 +17,14 @@ export default function CompletePage() {
   const streak = useAppStore((s) => s.streak)
   const sessionJustCompleted = useAppStore((s) => s.sessionJustCompleted)
   const incrementMoreStudyClicks = useAppStore((s) => s.incrementMoreStudyClicks)
+  const selectedCategories = useAppStore((s) => s.selectedCategories)
 
   // 오답노트 복습 세션 상태
   const [reviewQueue, setReviewQueue] = useState([])
   const [reviewIndex, setReviewIndex] = useState(0)
   const [phase, setPhase] = useState(null) // null | 'reviewing' | 'empty' | 'restart-prompt'
+  // 축하 화면에서 '오답노트' 영역을 눌러 목록을 미리 보고 싶을 때만 true
+  const [revealListFromCelebration, setRevealListFromCelebration] = useState(false)
 
   const currentWord = phase === 'reviewing' ? reviewQueue[reviewIndex] : null
 
@@ -69,10 +74,36 @@ export default function CompletePage() {
     resetToOnboarding()
   }
 
+  const firstCategory = CATEGORIES.find((c) => c.id === selectedCategories[0])
+  const extraCategoryCount = selectedCategories.length - 1
+
   // 카드 5장을 막 끝낸 경우, 오답노트로 넘어가지 않고 완료 화면을 계속 보여줌.
   // (오답노트 아이콘으로 중간에 들어온 경우는 sessionJustCompleted가 false라 바로 아래 오답노트 화면으로 진입)
-  if (sessionJustCompleted) {
-    return <CelebrationScreen streak={streak} onMoreStudy={incrementMoreStudyClicks} />
+  if (sessionJustCompleted && !revealListFromCelebration) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
+        <div className="mb-4 flex items-center justify-between rounded-lg bg-primary-50 py-1.5 pl-3 pr-1.5">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[11px] leading-none text-ink-dark">선택된 카테고리</span>
+            <span className="text-sm font-medium leading-none text-primary">
+              {firstCategory?.sub}
+              {extraCategoryCount > 0 && ` +${extraCategoryCount}`}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setRevealListFromCelebration(true)}
+            disabled={incorrectWords.length === 0}
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-ink-dark hover:text-primary disabled:pointer-events-none disabled:opacity-50"
+          >
+            <BookX size={16} className="text-red-500" />
+            <span className="text-xs font-semibold">오답노트 {incorrectWords.length}</span>
+          </button>
+        </div>
+
+        <CelebrationScreen streak={streak} onMoreStudy={incrementMoreStudyClicks} />
+      </div>
+    )
   }
 
   return (

@@ -14,7 +14,7 @@ export default function CelebrationScreen({ streak, onMoreStudy }) {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 text-center">
       <ConfettiBurst />
 
       <motion.div
