@@ -15,12 +15,12 @@ const enterPose = { opacity: 0, x: 0 }
 
 // flyOut이 없으면 새 카드로 등장(enter)하는 실제 카드,
 // flyOut이 있으면 직전 카드의 스냅샷을 그 자리에서 날려보내는 오버레이 클론입니다.
-export default function WordCard({ word, flyOut, onFlyOutComplete, className = '' }) {
+export default function WordCard({ word, flyOut, onFlyOutComplete, className = 'relative' }) {
   const category = CATEGORIES.find((c) => c.id === word.category)
 
   return (
     <motion.div
-      className={`relative ${className}`}
+      className={className}
       initial={flyOut ? restPose : enterPose}
       animate={flyOut ? exitTargets[flyOut] : restPose}
       transition={transition}

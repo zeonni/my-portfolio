@@ -90,7 +90,7 @@ export default function LearningPage() {
           type="button"
           onClick={handleUnknown}
           disabled={flyingCard !== null}
-          className="flex-1 rounded-xl border-2 border-ink-light py-4 font-semibold text-ink-dark transition hover:border-ink disabled:opacity-50"
+          className="flex-1 rounded-xl border-2 border-ink-light py-4 font-semibold text-ink-dark transition hover:border-ink disabled:cursor-default"
         >
           모르겠어요
         </button>
@@ -98,7 +98,7 @@ export default function LearningPage() {
           type="button"
           onClick={handleUnderstood}
           disabled={flyingCard !== null}
-          className="flex-1 rounded-xl bg-primary py-4 font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50"
+          className="flex-1 rounded-xl bg-primary py-4 font-semibold text-white transition hover:bg-primary-600 disabled:cursor-default"
         >
           이해했어요
         </button>
