@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import CategoryGrid from '../components/onboarding/CategoryGrid'
 import { fetchWords } from '../api/generateWords'
+import { trackEvent } from '../lib/analytics'
 
 // 화면 1 · 온보딩 및 카테고리 선택
 export default function OnboardingPage() {
@@ -20,6 +21,7 @@ export default function OnboardingPage() {
 
   const handleStart = async () => {
     if (selected.length === 0 || isLoading) return
+    trackEvent('Start Learning Clicked', { categories: selected })
     setSelectedCategories(selected)
     setLoading(true)
     try {

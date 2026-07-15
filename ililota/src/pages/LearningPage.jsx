@@ -5,6 +5,7 @@ import { CATEGORIES } from '../constants/categories'
 import ProgressBar from '../components/cards/ProgressBar'
 import WordCard from '../components/cards/WordCard'
 import FloatingReviewButton from '../components/review/FloatingReviewButton'
+import { trackEvent } from '../lib/analytics'
 
 // 화면 2 · 카드 학습 화면
 export default function LearningPage() {
@@ -27,13 +28,25 @@ export default function LearningPage() {
   const extraCategoryCount = selectedCategories.length - 1
 
   const handleUnderstood = () => {
+    trackEvent('Understood Clicked', { word: word.word })
     setFlyingCard({ word, type: 'understood' })
     markUnderstood()
   }
 
   const handleUnknown = () => {
+    trackEvent('Unknown Clicked', { word: word.word })
     setFlyingCard({ word, type: 'unknown' })
     markUnknown()
+  }
+
+  const handleChangeCategory = () => {
+    trackEvent('Change Category Clicked')
+    resetToOnboarding()
+  }
+
+  const handleOpenReview = () => {
+    trackEvent('Review Note Opened', { source: 'learning' })
+    openReview()
   }
 
   if (!word) return null
@@ -53,7 +66,7 @@ export default function LearningPage() {
         </div>
         <button
           type="button"
-          onClick={resetToOnboarding}
+          onClick={handleChangeCategory}
           className="flex items-center gap-1 text-sm text-ink hover:text-primary"
         >
           <RefreshCw size={14} />
@@ -77,7 +90,7 @@ export default function LearningPage() {
 
       <FloatingReviewButton
         count={incorrectWords.length}
-        onClick={openReview}
+        onClick={handleOpenReview}
         className="absolute bottom-36 right-4 z-20"
       />
 

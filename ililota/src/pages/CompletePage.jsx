@@ -6,6 +6,7 @@ import ReviewModal from '../components/review/ReviewModal'
 import FloatingReviewButton from '../components/review/FloatingReviewButton'
 import CelebrationScreen from '../components/celebration/CelebrationScreen'
 import { simplifyReview } from '../api/simplifyReview'
+import { trackEvent } from '../lib/analytics'
 
 // 화면 3 · 완료 축하 및 오답노트 화면
 export default function CompletePage() {
@@ -45,12 +46,14 @@ export default function CompletePage() {
   }
 
   const handleMaster = () => {
+    trackEvent('Master Complete Clicked', { word: currentWord.word })
     removeIncorrectWord(currentWord.word)
     advance()
   }
 
   // 재생성은 백그라운드에서 처리하고 즉시 다음 단어로 넘어가, 사용자가 대기를 느끼지 않게 합니다.
   const handleStillHard = () => {
+    trackEvent('Still Hard Clicked', { word: currentWord.word })
     const word = currentWord
     advance()
     simplifyReview(word.word, word.summary_analogy, word.review_detail ?? word.full_definition)
@@ -61,9 +64,15 @@ export default function CompletePage() {
   }
 
   const handleRestartYes = () => {
+    trackEvent('Restart Review Clicked', { answer: 'yes' })
     setReviewQueue(useAppStore.getState().incorrectWords)
     setReviewIndex(0)
     setPhase('reviewing')
+  }
+
+  const handleRestartNo = () => {
+    trackEvent('Restart Review Clicked', { answer: 'no' })
+    setPhase(null)
   }
 
   const handleCloseModal = () => setPhase(null)
@@ -72,12 +81,28 @@ export default function CompletePage() {
   // 오늘 카드를 전부 학습한 뒤 들어왔다면 완료 축하 화면으로, 학습을 마치기 전(플로팅 버튼)
   // 들어왔다면 이어서 풀던 카드 화면으로 돌아갑니다. 카테고리 선택 화면으로는 보내지 않습니다.
   const handleGoHome = () => {
+    trackEvent('Go Home Clicked')
     setPhase(null)
     if (sessionJustCompleted) {
       setRevealListFromCelebration(false)
     } else {
       closeReview()
     }
+  }
+
+  const handleMoreStudy = () => {
+    trackEvent('More Study Clicked')
+    incrementMoreStudyClicks()
+  }
+
+  const handleOpenReviewFromCelebration = () => {
+    trackEvent('Review Note Opened', { source: 'celebration' })
+    setRevealListFromCelebration(true)
+  }
+
+  const handleCloseReview = () => {
+    trackEvent('Review Note Closed')
+    closeReview()
   }
 
   const firstCategory = CATEGORIES.find((c) => c.id === selectedCategories[0])
@@ -99,11 +124,11 @@ export default function CompletePage() {
           {extraCategoryCount > 0 && <span className="ml-1.5 font-bold text-primary">+{extraCategoryCount}</span>}
         </div>
 
-        <CelebrationScreen streak={streak} onMoreStudy={incrementMoreStudyClicks} />
+        <CelebrationScreen streak={streak} onMoreStudy={handleMoreStudy} />
 
         <FloatingReviewButton
           count={incorrectWords.length}
-          onClick={() => setRevealListFromCelebration(true)}
+          onClick={handleOpenReviewFromCelebration}
           className="absolute bottom-8 right-4 z-20"
         />
       </div>
@@ -133,7 +158,7 @@ export default function CompletePage() {
 
       <button
         type="button"
-        onClick={closeReview}
+        onClick={handleCloseReview}
         className="mt-8 rounded-xl bg-primary py-4 font-semibold text-white transition hover:bg-primary-600"
       >
         오답노트 닫기
@@ -146,7 +171,7 @@ export default function CompletePage() {
         onStillHard={handleStillHard}
         onGoHome={handleGoHome}
         onRestartYes={handleRestartYes}
-        onRestartNo={handleCloseModal}
+        onRestartNo={handleRestartNo}
         onClose={handleCloseModal}
       />
     </div>
