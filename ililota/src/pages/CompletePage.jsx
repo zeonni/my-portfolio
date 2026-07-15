@@ -13,7 +13,6 @@ export default function CompletePage() {
   const removeIncorrectWord = useAppStore((s) => s.removeIncorrectWord)
   const updateIncorrectWordExplanation = useAppStore((s) => s.updateIncorrectWordExplanation)
   const closeReview = useAppStore((s) => s.closeReview)
-  const resetToOnboarding = useAppStore((s) => s.resetToOnboarding)
   const streak = useAppStore((s) => s.streak)
   const sessionJustCompleted = useAppStore((s) => s.sessionJustCompleted)
   const incrementMoreStudyClicks = useAppStore((s) => s.incrementMoreStudyClicks)
@@ -69,9 +68,16 @@ export default function CompletePage() {
 
   const handleCloseModal = () => setPhase(null)
 
+  // 오답노트를 다 풀고 '홈으로 돌아갈래요'를 누른 경우:
+  // 오늘 카드를 전부 학습한 뒤 들어왔다면 완료 축하 화면으로, 학습을 마치기 전(플로팅 버튼)
+  // 들어왔다면 이어서 풀던 카드 화면으로 돌아갑니다. 카테고리 선택 화면으로는 보내지 않습니다.
   const handleGoHome = () => {
     setPhase(null)
-    resetToOnboarding()
+    if (sessionJustCompleted) {
+      setRevealListFromCelebration(false)
+    } else {
+      closeReview()
+    }
   }
 
   const firstCategory = CATEGORIES.find((c) => c.id === selectedCategories[0])
