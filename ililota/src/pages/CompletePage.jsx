@@ -91,7 +91,7 @@ export default function CompletePage() {
   }
 
   const handleMoreStudy = () => {
-    trackEvent('More Study Clicked')
+    trackEvent('More Study Clicked', { streak })
     incrementMoreStudyClicks()
   }
 
