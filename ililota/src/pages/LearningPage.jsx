@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { BookX, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { CATEGORIES } from '../constants/categories'
 import ProgressBar from '../components/cards/ProgressBar'
 import WordCard from '../components/cards/WordCard'
+import FloatingReviewButton from '../components/review/FloatingReviewButton'
 
 // 화면 2 · 카드 학습 화면
 export default function LearningPage() {
@@ -38,7 +39,7 @@ export default function LearningPage() {
   if (!word) return null
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
+    <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
       <div className="mb-4 flex items-center justify-between rounded-lg bg-primary-50 py-1.5 pl-3 pr-1.5">
         <div className="flex flex-col gap-0.5">
           <span className="text-[11px] leading-none text-ink-dark">선택된 카테고리</span>
@@ -58,16 +59,6 @@ export default function LearningPage() {
       </div>
 
       <div className="relative my-12 flex flex-1 flex-col justify-center">
-        <button
-          type="button"
-          onClick={openReview}
-          disabled={incorrectWords.length === 0}
-          className="absolute -top-6 right-0 flex items-center gap-1.5 py-1.5 pl-2.5 pr-3 text-ink-dark hover:text-primary disabled:pointer-events-none disabled:opacity-50"
-        >
-          <BookX size={16} className="text-red-500" />
-          <span className="text-xs font-semibold">오답노트 {incorrectWords.length}</span>
-        </button>
-
         <WordCard key={currentIndex} word={word} />
 
         {flyingCard && (
@@ -80,6 +71,12 @@ export default function LearningPage() {
           />
         )}
       </div>
+
+      <FloatingReviewButton
+        count={incorrectWords.length}
+        onClick={openReview}
+        className="absolute bottom-36 right-4 z-20"
+      />
 
       <div className="mt-8">
         <ProgressBar current={currentIndex + 1} total={total} />

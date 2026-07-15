@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { BookX } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { CATEGORIES } from '../constants/categories'
 import ReviewListItem from '../components/review/ReviewListItem'
 import ReviewModal from '../components/review/ReviewModal'
+import FloatingReviewButton from '../components/review/FloatingReviewButton'
 import CelebrationScreen from '../components/celebration/CelebrationScreen'
 import { simplifyReview } from '../api/simplifyReview'
 
@@ -81,8 +81,8 @@ export default function CompletePage() {
   // (오답노트 아이콘으로 중간에 들어온 경우는 sessionJustCompleted가 false라 바로 아래 오답노트 화면으로 진입)
   if (sessionJustCompleted && !revealListFromCelebration) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
-        <div className="mb-4 flex items-center justify-between rounded-lg bg-primary-50 py-1.5 pl-3 pr-1.5">
+      <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
+        <div className="mb-4 rounded-lg bg-primary-50 py-1.5 pl-3 pr-1.5">
           <div className="flex flex-col gap-0.5">
             <span className="text-[11px] leading-none text-ink-dark">선택된 카테고리</span>
             <span className="text-sm font-medium leading-none text-primary">
@@ -90,18 +90,15 @@ export default function CompletePage() {
               {extraCategoryCount > 0 && ` +${extraCategoryCount}`}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setRevealListFromCelebration(true)}
-            disabled={incorrectWords.length === 0}
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-ink-dark hover:text-primary disabled:pointer-events-none disabled:opacity-50"
-          >
-            <BookX size={16} className="text-red-500" />
-            <span className="text-xs font-semibold">오답노트 {incorrectWords.length}</span>
-          </button>
         </div>
 
         <CelebrationScreen streak={streak} onMoreStudy={incrementMoreStudyClicks} />
+
+        <FloatingReviewButton
+          count={incorrectWords.length}
+          onClick={() => setRevealListFromCelebration(true)}
+          className="absolute bottom-8 right-4 z-20"
+        />
       </div>
     )
   }
