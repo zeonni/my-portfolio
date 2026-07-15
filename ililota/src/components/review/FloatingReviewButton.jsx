@@ -17,12 +17,10 @@ export default function FloatingReviewButton({ count, onClick, className = '' })
           className={`flex flex-col items-center gap-1.5 ${className}`}
         >
           <span className="relative flex">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-red-200 via-red-300 to-red-400 p-[3px] shadow-md">
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-white">
-                <FileX size={24} strokeWidth={2} className="text-ink-dark" />
-              </span>
+            <span className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-[#FF5A5A] bg-white shadow-md">
+              <FileX size={24} strokeWidth={2} className="text-ink-dark" />
             </span>
-            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white ring-2 ring-white">
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#FF0000] text-[11px] font-bold text-white">
               {count}
             </span>
           </span>
