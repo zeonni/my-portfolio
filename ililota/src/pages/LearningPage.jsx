@@ -40,18 +40,21 @@ export default function LearningPage() {
 
   return (
     <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
-      <div className="mb-4 flex items-center justify-between rounded-lg bg-primary-50 py-1.5 pl-3 pr-1.5">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[11px] leading-none text-ink-dark">선택된 카테고리</span>
-          <span className="text-sm font-medium leading-none text-primary">
-            {firstCategory?.sub}
-            {extraCategoryCount > 0 && ` +${extraCategoryCount}`}
-          </span>
+      <div className="mb-4 flex items-center justify-between rounded-full border-2 border-primary bg-white px-4 py-2">
+        <div className="flex items-center gap-1.5 text-sm text-ink-dark">
+          <span>선택된 카테고리</span>
+          {firstCategory && (
+            <span className="flex items-center gap-1 font-bold text-gray-900">
+              <span>{firstCategory.emoji}</span>
+              <span>{firstCategory.sub}</span>
+            </span>
+          )}
+          {extraCategoryCount > 0 && <span className="font-bold text-primary">+{extraCategoryCount}</span>}
         </div>
         <button
           type="button"
           onClick={resetToOnboarding}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-sm text-ink-dark hover:text-primary"
+          className="flex items-center gap-1 text-sm text-ink hover:text-primary"
         >
           <RefreshCw size={14} />
           변경

@@ -82,14 +82,15 @@ export default function CompletePage() {
   if (sessionJustCompleted && !revealListFromCelebration) {
     return (
       <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
-        <div className="mb-4 rounded-lg bg-primary-50 py-1.5 pl-3 pr-1.5">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] leading-none text-ink-dark">선택된 카테고리</span>
-            <span className="text-sm font-medium leading-none text-primary">
-              {firstCategory?.sub}
-              {extraCategoryCount > 0 && ` +${extraCategoryCount}`}
+        <div className="mb-4 flex items-center rounded-full border-2 border-primary bg-white px-4 py-2 text-sm text-ink-dark">
+          <span>선택된 카테고리</span>
+          {firstCategory && (
+            <span className="ml-1.5 flex items-center gap-1 font-bold text-gray-900">
+              <span>{firstCategory.emoji}</span>
+              <span>{firstCategory.sub}</span>
             </span>
-          </div>
+          )}
+          {extraCategoryCount > 0 && <span className="ml-1.5 font-bold text-primary">+{extraCategoryCount}</span>}
         </div>
 
         <CelebrationScreen streak={streak} onMoreStudy={incrementMoreStudyClicks} />
