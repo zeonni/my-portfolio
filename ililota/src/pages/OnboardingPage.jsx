@@ -16,8 +16,11 @@ export default function OnboardingPage() {
 
   const [selected, setSelected] = useState([])
 
-  const toggle = (id) =>
+  const toggle = (id) => {
+    const willSelect = !selected.includes(id)
+    trackEvent('Category Toggled', { category: id, selected: willSelect })
     setSelected((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]))
+  }
 
   const handleStart = async () => {
     if (selected.length === 0 || isLoading) return

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import { CATEGORIES } from '../constants/categories'
@@ -27,14 +27,21 @@ export default function LearningPage() {
   const firstCategory = CATEGORIES.find((c) => c.id === selectedCategories[0])
   const extraCategoryCount = selectedCategories.length - 1
 
+  // 카드가 화면에 뜰 때마다 몇 번째 카드인지 기록 -> 퍼널로 이탈 지점 확인용
+  useEffect(() => {
+    if (!word) return
+    trackEvent('Card Viewed', { position: currentIndex + 1, total, word: word.word })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, word])
+
   const handleUnderstood = () => {
-    trackEvent('Understood Clicked', { word: word.word })
+    trackEvent('Understood Clicked', { word: word.word, position: currentIndex + 1 })
     setFlyingCard({ word, type: 'understood' })
     markUnderstood()
   }
 
   const handleUnknown = () => {
-    trackEvent('Unknown Clicked', { word: word.word })
+    trackEvent('Unknown Clicked', { word: word.word, position: currentIndex + 1 })
     setFlyingCard({ word, type: 'unknown' })
     markUnknown()
   }
