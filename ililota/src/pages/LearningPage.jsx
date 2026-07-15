@@ -41,8 +41,8 @@ export default function LearningPage() {
   return (
     <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
       <div className="mb-4 flex items-center justify-between rounded-full border-2 border-primary bg-white px-4 py-2">
-        <div className="flex items-center gap-1.5 text-sm text-ink-dark">
-          <span>선택된 카테고리</span>
+        <div className="flex items-center gap-1.5 text-sm">
+          <span className="text-ink">선택된 카테고리</span>
           {firstCategory && (
             <span className="flex items-center gap-1 font-bold text-gray-900">
               <span>{firstCategory.emoji}</span>
