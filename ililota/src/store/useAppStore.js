@@ -13,6 +13,16 @@ function dateKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
+// 저장된 상태만으로 재접속 시 보여줄 화면을 판단합니다.
+// 1) 풀다 만 카드가 있으면(완료 여부와 무관) 이어서 그 카드로,
+// 2) 아니고 오늘 이미 완료했다면 완료 화면으로,
+// 3) 둘 다 아니면 카테고리 선택 화면으로.
+function resolveStage({ currentWords, currentIndex, lastCompletedDate }) {
+  if (currentWords.length > 0 && currentIndex < currentWords.length) return STAGE.LEARNING
+  if (lastCompletedDate === dateKey(new Date())) return STAGE.COMPLETE
+  return STAGE.ONBOARDING
+}
+
 export const useAppStore = create(
   persist(
     (set, get) => ({
@@ -98,6 +108,9 @@ export const useAppStore = create(
           return {
             seenWords: nextSeen,
             incorrectWords: nextIncorrect ?? state.incorrectWords,
+            // 완료된 세션의 카드 데이터는 더 이상 필요 없음 - 재접속 시 lastCompletedDate로 완료 화면을 판단하므로 비워둠
+            currentWords: [],
+            currentIndex: 0,
             stage: STAGE.COMPLETE,
             streak: nextStreak,
             lastCompletedDate: today,
@@ -133,15 +146,20 @@ export const useAppStore = create(
           sessionJustCompleted: false,
         }),
 
-      // '오답노트 닫기' -> 카드 화면으로 복귀 (진행 상태 유지)
-      closeReview: () => set({ stage: STAGE.LEARNING }),
+      // '오답노트 닫기' -> 진행 상태에 맞는 화면으로 복귀 (풀다 만 카드 / 완료 화면 / 카테고리 선택)
+      closeReview: () =>
+        set((state) => {
+          const stage = resolveStage(state)
+          return { stage, sessionJustCompleted: stage === STAGE.COMPLETE }
+        }),
 
       // 학습 화면에서 오답노트 아이콘 클릭 -> 5단어를 다 풀지 않아도 오답노트 화면으로 이동
       openReview: () => set({ stage: STAGE.COMPLETE }),
     }),
     {
       name: 'ililota-storage', // LocalStorage key
-      // 화면 전이/로딩 등 휘발성 상태는 저장하지 않고, PRD 7의 필드만 영속화
+      // 화면 전이 자체는 저장하지 않지만, 재접속 시 어느 화면으로 돌아갈지 판단하려면
+      // 풀다 만 카드(currentWords/currentIndex)까지는 영속화가 필요합니다.
       partialize: (state) => ({
         selectedCategories: state.selectedCategories,
         seenWords: state.seenWords,
@@ -149,7 +167,17 @@ export const useAppStore = create(
         streak: state.streak,
         lastCompletedDate: state.lastCompletedDate,
         moreStudyClickCount: state.moreStudyClickCount,
+        currentWords: state.currentWords,
+        currentIndex: state.currentIndex,
       }),
+      // 하이드레이션 결과(로컬스토리지 값 + 초기 상태)를 합칠 때 시작 화면도 함께 결정합니다.
+      // (localStorage는 동기 스토리지라 하이드레이션이 스토어 생성 도중 즉시 끝나버리므로,
+      //  onRehydrateStorage 콜백에서 모듈 스코프의 useAppStore를 참조하면 TDZ 에러가 납니다.)
+      merge: (persistedState, currentState) => {
+        const merged = { ...currentState, ...persistedState }
+        const stage = resolveStage(merged)
+        return { ...merged, stage, sessionJustCompleted: stage === STAGE.COMPLETE }
+      },
     }
   )
 )

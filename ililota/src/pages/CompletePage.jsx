@@ -26,7 +26,12 @@ export default function CompletePage() {
   // 축하 화면에서 '오답노트' 영역을 눌러 목록을 미리 보고 싶을 때만 true
   const [revealListFromCelebration, setRevealListFromCelebration] = useState(false)
 
-  const currentWord = phase === 'reviewing' ? reviewQueue[reviewIndex] : null
+  // reviewQueue는 큐 순서만 담당하고, 실제 내용은 store에서 실시간으로 가져옵니다.
+  // '여전히 어려워요' 응답(더 쉬운 설명)이 늦게 도착해도 반영되도록 하기 위함입니다.
+  const queuedWord = phase === 'reviewing' ? reviewQueue[reviewIndex] : null
+  const currentWord = queuedWord
+    ? incorrectWords.find((w) => w.word === queuedWord.word) ?? queuedWord
+    : null
 
   const advance = () => {
     if (reviewIndex + 1 < reviewQueue.length) {
@@ -100,9 +105,15 @@ export default function CompletePage() {
     setRevealListFromCelebration(true)
   }
 
+  // 오늘 학습을 이미 완료한 상태에서 열었던 오답노트라면 완료 축하 화면으로,
+  // 아니라면(플로팅 버튼으로 학습 중 들어온 경우) 풀던 카드 화면으로 돌아갑니다.
   const handleCloseReview = () => {
     trackEvent('Review Note Closed')
-    closeReview()
+    if (sessionJustCompleted) {
+      setRevealListFromCelebration(false)
+    } else {
+      closeReview()
+    }
   }
 
   const firstCategory = CATEGORIES.find((c) => c.id === selectedCategories[0])
