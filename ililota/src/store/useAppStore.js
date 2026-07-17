@@ -1,8 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-// 화면 흐름: onboarding -> learning -> complete
+// 화면 흐름: welcome -> onboarding -> learning -> complete
 export const STAGE = {
+  WELCOME: 'welcome',
   ONBOARDING: 'onboarding',
   LEARNING: 'learning',
   COMPLETE: 'complete',
@@ -16,18 +17,18 @@ function dateKey(date) {
 // 저장된 상태만으로 재접속 시 보여줄 화면을 판단합니다.
 // 1) 풀다 만 카드가 있으면(완료 여부와 무관) 이어서 그 카드로,
 // 2) 아니고 오늘 이미 완료했다면 완료 화면으로,
-// 3) 둘 다 아니면 카테고리 선택 화면으로.
+// 3) 둘 다 아니면 시작 화면으로.
 function resolveStage({ currentWords, currentIndex, lastCompletedDate }) {
   if (currentWords.length > 0 && currentIndex < currentWords.length) return STAGE.LEARNING
   if (lastCompletedDate === dateKey(new Date())) return STAGE.COMPLETE
-  return STAGE.ONBOARDING
+  return STAGE.WELCOME
 }
 
 export const useAppStore = create(
   persist(
     (set, get) => ({
       // ---- 화면 전이 (비영속) ----
-      stage: STAGE.ONBOARDING,
+      stage: STAGE.WELCOME,
 
       // ---- 이번 세션에 AI가 내려준 카드 (비영속) ----
       currentWords: [], // [{ word, summary_analogy, full_definition }]
@@ -47,6 +48,9 @@ export const useAppStore = create(
       sessionJustCompleted: false,
 
       // ---- actions ----
+      // 시작 화면 '시작하기' -> 카테고리 선택 화면으로 이동
+      enterOnboarding: () => set({ stage: STAGE.ONBOARDING }),
+
       setSelectedCategories: (categories) => set({ selectedCategories: categories }),
 
       setLoading: (isLoading) => set({ isLoading, error: null }),
