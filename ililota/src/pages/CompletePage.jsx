@@ -123,7 +123,7 @@ export default function CompletePage() {
   // (오답노트 아이콘으로 중간에 들어온 경우는 sessionJustCompleted가 false라 바로 아래 오답노트 화면으로 진입)
   if (sessionJustCompleted && !revealListFromCelebration) {
     return (
-      <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 py-8">
+      <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 pb-24 pt-8">
         <div className="mb-4 flex items-center rounded-full border-2 border-primary bg-white px-4 py-2 text-sm">
           <span className="text-ink">선택된 카테고리</span>
           {firstCategory && (
@@ -147,7 +147,7 @@ export default function CompletePage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-10">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 pb-24 pt-10">
       <header className="mb-8 text-center">
         <h1 className="text-xl font-bold text-primary">오답노트</h1>
         <p className="mt-2 text-sm text-ink-dark">어려웠던 용어를 다시 복습해 보아요.</p>

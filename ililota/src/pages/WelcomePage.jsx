@@ -13,7 +13,7 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 py-10 text-center">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-6 pb-24 pt-10 text-center">
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

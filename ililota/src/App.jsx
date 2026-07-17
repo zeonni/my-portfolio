@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppStore, STAGE } from './store/useAppStore'
 import WelcomePage from './pages/WelcomePage'
 import OnboardingPage from './pages/OnboardingPage'
 import LearningPage from './pages/LearningPage'
 import CompletePage from './pages/CompletePage'
+import FeedbackPage from './pages/FeedbackPage'
+import BottomNav from './components/nav/BottomNav'
 import { trackPageView } from './lib/analytics'
 
 const SCREEN_NAMES = {
@@ -13,12 +15,8 @@ const SCREEN_NAMES = {
   [STAGE.COMPLETE]: 'Complete',
 }
 
-export default function App() {
+function StudyTab() {
   const stage = useAppStore((s) => s.stage)
-
-  useEffect(() => {
-    trackPageView(SCREEN_NAMES[stage] ?? stage)
-  }, [stage])
 
   switch (stage) {
     case STAGE.LEARNING:
@@ -31,4 +29,22 @@ export default function App() {
     default:
       return <WelcomePage />
   }
+}
+
+export default function App() {
+  const stage = useAppStore((s) => s.stage)
+  const [activeTab, setActiveTab] = useState('study')
+
+  useEffect(() => {
+    const screenName = activeTab === 'feedback' ? 'Feedback' : (SCREEN_NAMES[stage] ?? stage)
+    trackPageView(screenName)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, stage])
+
+  return (
+    <>
+      {activeTab === 'feedback' ? <FeedbackPage /> : <StudyTab />}
+      <BottomNav active={activeTab} onChange={setActiveTab} />
+    </>
+  )
 }

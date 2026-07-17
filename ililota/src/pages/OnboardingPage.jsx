@@ -36,7 +36,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 py-10">
+    <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 pb-24 pt-10">
       <header className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-primary">일일오따</h1>
         <p className="mt-2 text-sm text-ink-dark">하루 5단어로 시작하는 경제공부, 카테고리를 골라주세요!</p>
