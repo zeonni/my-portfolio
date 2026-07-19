@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import CategoryGrid from '../components/onboarding/CategoryGrid'
+import LoadingScreen from '../components/common/LoadingScreen'
 import { fetchWords } from '../api/generateWords'
 import { trackEvent } from '../lib/analytics'
 
@@ -35,6 +36,10 @@ export default function OnboardingPage() {
     }
   }
 
+  if (isLoading) {
+    return <LoadingScreen />
+  }
+
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col px-6 pb-24 pt-10">
       <header className="mb-8 text-center">
@@ -49,10 +54,10 @@ export default function OnboardingPage() {
       <button
         type="button"
         onClick={handleStart}
-        disabled={selected.length === 0 || isLoading}
+        disabled={selected.length === 0}
         className="mt-8 rounded-xl bg-primary py-4 font-semibold text-white transition hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {isLoading ? '오늘의 단어를 준비하고 있어요...' : '오늘의 단어 받기'}
+        오늘의 단어 받기
       </button>
     </div>
   )

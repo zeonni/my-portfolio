@@ -24,7 +24,9 @@ export default function WelcomePage() {
         <h1 className="mt-3 font-hand text-4xl font-bold text-primary">일일오따</h1>
 
         <p className="mt-4 text-sm leading-relaxed text-ink-dark">
-          하루한번 5단어로 시작하는 경제공부, 오늘도 시작해볼까요?
+          하루 한 번, 5가지 경제 단어를 내 것으로 쏙 따먹기
+          <br />
+          오늘도 시작해 볼까요?
         </p>
       </motion.div>
 
