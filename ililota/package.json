@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@amplitude/analytics-browser": "^2.45.3",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",
     "mixpanel-browser": "^2.81.0",
