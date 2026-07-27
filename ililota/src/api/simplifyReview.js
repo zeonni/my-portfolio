@@ -1,8 +1,10 @@
 // 오답노트 팝업의 '여전히 어려워요' 버튼에서 사용합니다.
 // 입력: word, 현재 summary_analogy, 현재 review_detail
 // 출력: { summary_analogy, review_detail } (더 쉬운 버전)
+import { API_BASE } from './config'
+
 export async function simplifyReview(word, summaryAnalogy, reviewDetail) {
-  const res = await fetch('/api/simplify-review', {
+  const res = await fetch(`${API_BASE}/api/simplify-review`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
