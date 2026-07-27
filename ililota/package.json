@@ -4,14 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "granite dev",
     "dev:vercel": "vercel dev",
-    "build": "vite build",
+    "build": "ait build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "ait deploy"
   },
   "dependencies": {
     "@amplitude/analytics-browser": "^2.45.3",
+    "@apps-in-toss/web-framework": "^2.10.7",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",
     "mixpanel-browser": "^2.81.0",
